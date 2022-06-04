@@ -1,4 +1,4 @@
-use crossterm_cursor::cursor;
+use crossterm_cursor::{cursor, TerminalCursor};
 use rand::Rng;
 use terminal_size::{terminal_size, Height, Width};
 use std::collections::VecDeque;
@@ -17,8 +17,8 @@ fn create_raindrop(w: u16, h: u16) -> Raindrop {
     let mut rng = rand::thread_rng();
 
     let x = rng.gen_range(0..w);
-    let y = rng.gen_range(1..3);
-    let finish_y = rng.gen_range(h - 2..h - 1);
+    let y = 0;
+    let finish_y = rng.gen_range(h - 3..h - 1);
 
     return Raindrop { x, y, finish_y };
 }
@@ -34,14 +34,32 @@ pub struct Raindrop {
     finish_y: u16,
 }
 
-fn raining() {
-    let mut cursor = cursor();
-    let (w, h) = get_terminal_size();
+fn landing() {
+    let mut rng = rand::thread_rng();
+    let n: u8 = rng.gen_range(0..3);
+    if n == 0 {
+        print!("o");
+    } else if n == 1 {
+       print!("○"); 
+    } else if n == 2 {
+        print!("◉");
+    } else if n == 3 {
+        print!("◌");
+    }
+}
+
+fn raining(w: u16, h: u16) {
+    // let landing = vec!["○", "◌"];
+    let cursor: TerminalCursor = cursor();
+    cursor.hide();
+
     let mut raindrops: Vec<Raindrop> = Vec::new();
 
-    for _row in 1..=1000 {
-        let raindrop = create_raindrop(w, h);
+    loop {
+        let raindrop: Raindrop = create_raindrop(w, h);
+        let raindrop2: Raindrop = create_raindrop(w, h);
         raindrops.push(raindrop);
+        raindrops.push(raindrop2);
 
         let mut index: usize = 0;
         let mut finished_raindrops: VecDeque<usize> = VecDeque::new();
@@ -53,8 +71,11 @@ fn raining() {
                 // Place moved drop
                 r.y = r.y + 1;
                 cursor.goto(r.x, r.y);
-                print!("|");
-                cursor.hide();
+                if r.y == r.finish_y {
+                    landing()
+                } else {
+                    print!("|");
+                }
             } else {
                 finished_raindrops.push_front(index);
             }
@@ -69,5 +90,6 @@ fn raining() {
 
 fn main() {
     clear_screen();
-    raining();
+    let (w, h) = get_terminal_size();
+    raining(w, h);
 }
