@@ -77,14 +77,15 @@ fn raining(w: u16, h: u16) {
     cursor.hide();
 
     let mut raindrops: Vec<Raindrop> = Vec::new();
+    let mut index: usize = 0;
+    let mut finished_raindrops: VecDeque<usize>;
 
-    let mut index: usize;
     loop {
         raindrops.push(create_raindrop(w, h));
         raindrops.push(create_raindrop(w, h));
-
+        
         index = 0;
-        let mut finished_raindrops: VecDeque<usize> = VecDeque::new();
+        finished_raindrops = VecDeque::new();
         for r in raindrops.iter_mut() {
             // Remove old raindrop
             cursor.goto(r.x, r.y);
