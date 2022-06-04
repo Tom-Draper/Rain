@@ -34,9 +34,29 @@ pub struct Raindrop {
     finish_y: u16,
 }
 
+fn travelling() {
+    let mut rng = rand::thread_rng();
+    let n: u8 = rng.gen_range(0..6);
+    if n == 0 {
+        print!("|");
+    } else if n == 1 {
+        print!("│"); 
+    } else if n == 2 {
+        print!("╎");
+    } else if n == 3 {
+        print!("┊");
+    } else if n == 4 {
+        print!("┆");
+    } else if n == 5 {
+        print!("╵");
+    } else if n == 6 {
+        print!("╷");
+    }
+}
+
 fn landing() {
     let mut rng = rand::thread_rng();
-    let n: u8 = rng.gen_range(0..3);
+    let n: u8 = rng.gen_range(0..5);
     if n == 0 {
         print!("o");
     } else if n == 1 {
@@ -45,23 +65,25 @@ fn landing() {
         print!("◉");
     } else if n == 3 {
         print!("◌");
+    } else if n == 4 {
+        print!("◯");
+    } else if n == 5 {
+        print!("⊙");
     }
 }
 
 fn raining(w: u16, h: u16) {
-    // let landing = vec!["○", "◌"];
     let cursor: TerminalCursor = cursor();
     cursor.hide();
 
     let mut raindrops: Vec<Raindrop> = Vec::new();
 
+    let mut index: usize;
     loop {
-        let raindrop: Raindrop = create_raindrop(w, h);
-        let raindrop2: Raindrop = create_raindrop(w, h);
-        raindrops.push(raindrop);
-        raindrops.push(raindrop2);
+        raindrops.push(create_raindrop(w, h));
+        raindrops.push(create_raindrop(w, h));
 
-        let mut index: usize = 0;
+        index = 0;
         let mut finished_raindrops: VecDeque<usize> = VecDeque::new();
         for r in raindrops.iter_mut() {
             // Remove old raindrop
@@ -69,12 +91,12 @@ fn raining(w: u16, h: u16) {
             print!(" ");
             if r.y < r.finish_y {
                 // Place moved drop
-                r.y = r.y + 1;
+                r.y += 1;
                 cursor.goto(r.x, r.y);
                 if r.y == r.finish_y {
-                    landing()
+                    landing();
                 } else {
-                    print!("|");
+                    travelling();
                 }
             } else {
                 finished_raindrops.push_front(index);
