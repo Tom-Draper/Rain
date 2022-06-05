@@ -100,6 +100,51 @@ fn landing(rng: &mut ThreadRng) {
     }
 }
 
+fn move_straight_raindrop(r: &mut Raindrop, cursor: &TerminalCursor, rng: &mut ThreadRng, finished_raindrops: &mut VecDeque<usize>, index: usize, w: u16) {
+    if r.y < r.finish_y {
+        r.y += 1;
+        cursor.goto(r.x, r.y);
+        if r.y == r.finish_y {
+            landing(rng);
+        } else {
+            travelling(rng);
+        }
+    } else {
+        finished_raindrops.push_front(index);
+    }
+}
+
+fn move_right_raindrop(r: &mut Raindrop, cursor: &TerminalCursor, rng: &mut ThreadRng, finished_raindrops: &mut VecDeque<usize>, index: usize, w: u16) {
+    if r.y < r.finish_y && r.x < w {
+        r.y += 1;
+        r.x += 1;
+        cursor.goto(r.x, r.y);
+        if r.y == r.finish_y {
+            landing(rng);
+        } else {
+            travelling_right(rng);
+        }
+    } else {
+        finished_raindrops.push_front(index);
+    }
+}
+
+fn move_left_raindrop(r: &mut Raindrop, cursor: &TerminalCursor, rng: &mut ThreadRng, finished_raindrops: &mut VecDeque<usize>, index: usize, w: u16) {
+    if r.y < r.finish_y && r.x > 0 {
+        // Place moved drop
+        r.y += 1;
+        r.x -= 1;
+        cursor.goto(r.x, r.y);
+        if r.y == r.finish_y {
+            landing(rng);
+        } else {
+            travelling_left(rng);
+        }
+    } else {
+        finished_raindrops.push_front(index);
+    }
+}
+
 fn raining(w: u16, h: u16, direction: u8) {
     let cursor: TerminalCursor = cursor();
     cursor.hide();
@@ -110,12 +155,16 @@ fn raining(w: u16, h: u16, direction: u8) {
     let mut finished_raindrops: VecDeque<usize>;
 
     let create_raindrop: fn(u16, u16, &mut ThreadRng) -> Raindrop;
+    let move_raindrop: fn(&mut Raindrop, &TerminalCursor, &mut ThreadRng, &mut VecDeque<usize>, usize, u16);
     if direction == 0 {
         create_raindrop = create_straight_raindrop;
+        move_raindrop = move_straight_raindrop;
     } else if direction == 1 {
         create_raindrop = create_right_raindrop;
+        move_raindrop = move_right_raindrop;
     } else {
         create_raindrop = create_left_raindrop;
+        move_raindrop = move_left_raindrop;
     }
     
     loop {
@@ -129,46 +178,8 @@ fn raining(w: u16, h: u16, direction: u8) {
             cursor.goto(r.x, r.y);
             print!(" ");
 
-            if direction == 0 {
-                if r.y < r.finish_y {
-                    r.y += 1;
-                    cursor.goto(r.x, r.y);
-                    if r.y == r.finish_y {
-                        landing(&mut rng);
-                    } else {
-                        travelling(&mut rng);
-                    }
-                } else {
-                    finished_raindrops.push_front(index);
-                }
-            } else if direction == 1 {
-                if r.y < r.finish_y && r.x < w {
-                    r.y += 1;
-                    r.x += 1;
-                    cursor.goto(r.x, r.y);
-                    if r.y == r.finish_y {
-                        landing(&mut rng);
-                    } else {
-                        travelling_right(&mut rng);
-                    }
-                } else {
-                    finished_raindrops.push_front(index);
-                }
-            } else {
-                if r.y < r.finish_y && r.x > 0 {
-                    // Place moved drop
-                    r.y += 1;
-                    r.x -= 1;
-                    cursor.goto(r.x, r.y);
-                    if r.y == r.finish_y {
-                        landing(&mut rng);
-                    } else {
-                        travelling_left(&mut rng);
-                    }
-                } else {
-                    finished_raindrops.push_front(index);
-                }
-            }
+            move_raindrop(r, &cursor, &mut rng, &mut finished_raindrops, index, w);
+
             index += 1;
         }
 
